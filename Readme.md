@@ -12,8 +12,16 @@ conda create -n celery-test python=3.11
 conda activate celery-test
 pip install -r requirements.txt
 
-# 스크립트 실행 (celery worker 및 flower 실행)
+#프로젝트 이동
 cd app
+
+# .env_sample 파일명 변경
+mv .env_sample .env
+
+# docker 실행(redis)
+docker-compose up -d
+
+# 스크립트 실행 (celery worker 및 flower 실행)
 run_celery.sh 2
 ```
 
@@ -48,23 +56,35 @@ python manage.py task_eta_test 120 "CELERY"
 실행
 
 ```
-python manage.py task_eta_test 30 "CELERY"
+python manage.py task_eta_test 120 "CELERY"
 
-Successfully Excute Task name: CELERY expected excute time: 2023-07-29 15:22:37.747320
+Successfully Excute Task name: CELERY expected excute time: 2023-07-29 16:07:28.685025
 ```
 
 worker
 하나의 message를 보냈는데, 동일한 task가 실행된 현상
 
 ```
-[2023-07-29 15:22:07,803] Task tasktest.tasks.run_task[d410ec40-ec2b-4ca5-9bdc-557528565932] received
+[2023-07-29 16:05:28,746] Task tasktest.tasks.run_task[b9a9eaf6-aa03-4b43-9d42-e633c076a48d] received
 
-[2023-07-29 15:22:17,098] Task tasktest.tasks.run_task[d410ec40-ec2b-4ca5-9bdc-557528565932] received
+[2023-07-29 16:06:49,530] Task tasktest.tasks.run_task[b9a9eaf6-aa03-4b43-9d42-e633c076a48d] received
 
-[2023-07-29 15:22:37,757: INFO/ForkPoolWorker-8] [celery@worker2-d410ec40-ec2b-4ca5-9bdc-557528565932]  SUCCESS NAME: CELERY
+[2023-07-29 16:07:28,690: INFO/ForkPoolWorker-1] [celery@worker1-b9a9eaf6-aa03-4b43-9d42-e633c076a48d]  SUCCESS NAME: CELERY
 
-[2023-07-29 15:22:37,759: INFO/ForkPoolWorker-1] [celery@worker2-d410ec40-ec2b-4ca5-9bdc-557528565932]  SUCCESS NAME: CELERY
+[2023-07-29 16:07:28,692: INFO/ForkPoolWorker-8] [celery@worker1-b9a9eaf6-aa03-4b43-9d42-e633c076a48d]  SUCCESS NAME: CELERY
+
+[2023-07-29 16:07:28,710: INFO/ForkPoolWorker-1] Task tasktest.tasks.run_task
+[b9a9eaf6-aa03-4b43-9d42-e633c076a48d] succeeded in 0.02091304212808609s: None
+
+[2023-07-29 16:07:28,710: INFO/ForkPoolWorker-8] Task tasktest.tasks.run_task[b9a9eaf6-aa03-4b43-9d42-e633c076a48d] succeeded in 0.020860582822933793s: None
 ```
+
+flower로 확인
+
+`localhost:5555` 로 접속
+1개의 message만 보냈는데, 2개의 task가 실행된것을 확인할 수 있다.
+![](./media/image/eta_result.png)
+
 
 ### 참고
 
